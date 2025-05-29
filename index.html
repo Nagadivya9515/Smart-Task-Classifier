@@ -141,7 +141,7 @@
         const res = await fetch('https://api-inference.huggingface.co/models/facebook/bart-large-mnli', {
           method: 'POST',
           headers: {
-            Authorization: `Bearer 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`,
+            Authorization: `Bearer ${HUGGINGFACE_API_TOKEN}`,
             'Content-Type': 'application/json'
           },
           body: JSON.stringify({ inputs: task, parameters: { candidate_labels: candidateLabels } })
