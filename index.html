@@ -1,0 +1,199 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Smart Task Classifier</title>
+  <style>
+    body {
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #f9f9f9;
+      margin: 0;
+      padding: 2rem;
+      color: #333;
+    }
+
+    h2 {
+      color: #444;
+    }
+
+    .container {
+      max-width: 900px;
+      margin: auto;
+      padding: 2rem;
+      background: white;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+      border-radius: 12px;
+    }
+
+    textarea {
+      width: 100%;
+      padding: 1rem;
+      font-size: 1rem;
+      border: 1px solid #ccc;
+      border-radius: 8px;
+      margin-bottom: 1rem;
+      resize: vertical;
+    }
+
+    button {
+      padding: 0.6rem 1.2rem;
+      font-size: 1rem;
+      border: none;
+      background-color: #4CAF50;
+      color: white;
+      border-radius: 6px;
+      cursor: pointer;
+      margin: 0.5rem 0;
+    }
+
+    button:hover {
+      background-color: #45a049;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 1rem;
+    }
+
+    th, td {
+      padding: 0.75rem;
+      border: 1px solid #ccc;
+      text-align: left;
+    }
+
+    th {
+      background-color: #f2f2f2;
+    }
+
+    #tasksList {
+      margin-top: 1rem;
+    }
+
+    @media (max-width: 600px) {
+      textarea {
+        font-size: 0.9rem;
+      }
+      button {
+        width: 100%;
+        margin-bottom: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <h2>🧠 Smart Task Classifier</h2>
+
+    <h3>Define your categories (one per line):</h3>
+    <textarea id="categoriesInput" rows="4" placeholder="Format: CategoryName: brief description"></textarea>
+    <button onclick="saveCategories()">💾 Save Categories</button>
+
+    <h3>Enter your tasks:</h3>
+    <textarea id="tasksInput" rows="5" placeholder="Example:\nWrite React.js blog post\nFix dark mode CSS"></textarea>
+    <button onclick="addTask()">⚡ Classify Tasks</button>
+
+    <h3>Results:</h3>
+    <div id="tasksList">No tasks yet.</div>
+    <button onclick="exportReports()">📁 Export Report</button>
+  </div>
+
+  <audio id="doneSound" src="https://www.soundjay.com/buttons/sounds/button-16.mp3" preload="auto"></audio>
+
+  <script>
+    const HUGGINGFACE_API_TOKEN = 'hf_YOUR_API_TOKEN_HERE';
+
+    window.onload = () => {
+      loadCategories();
+      loadTasks();
+    };
+
+    function saveCategories() {
+      const raw = document.getElementById('categoriesInput').value.trim();
+      if (!raw) return alert("Enter at least one category.");
+      localStorage.setItem('taskCategories', raw);
+      alert("Categories saved!");
+    }
+
+    function loadCategories() {
+      const saved = localStorage.getItem('taskCategories');
+      if (saved) document.getElementById('categoriesInput').value = saved;
+    }
+
+    function loadTasks() {
+      const saved = JSON.parse(localStorage.getItem('tasksList') || "[]");
+      renderTasks(saved);
+    }
+
+    async function addTask() {
+      const taskText = document.getElementById('tasksInput').value.trim();
+      const tasks = taskText.split('\n').map(t => t.trim()).filter(Boolean);
+
+      if (tasks.length === 0) return alert("Enter at least one task.");
+      const categoriesRaw = localStorage.getItem('taskCategories');
+      if (!categoriesRaw) return alert("Please save categories first.");
+
+      const candidateLabels = categoriesRaw.split('\n').filter(Boolean);
+      const results = [];
+
+      for (const task of tasks) {
+        const res = await fetch('https://api-inference.huggingface.co/models/facebook/bart-large-mnli', {
+          method: 'POST',
+          headers: {
+            Authorization: `Bearer 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`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({ inputs: task, parameters: { candidate_labels: candidateLabels } })
+        });
+        const data = await res.json();
+        if (!data || !data.labels) continue;
+
+        const label = data.labels[0];
+        const score = data.scores[0];
+        const cleanLabel = label.split(':')[0].trim();
+        results.push({ task, category: cleanLabel, confidence: score });
+      }
+
+      localStorage.setItem('tasksList', JSON.stringify(results));
+      renderTasks(results);
+      document.getElementById('doneSound').play();
+    }
+
+    function renderTasks(tasks) {
+      const container = document.getElementById('tasksList');
+      if (!tasks.length) return container.innerHTML = "No tasks classified yet.";
+
+      const table = document.createElement('table');
+      table.innerHTML = `
+        <thead>
+          <tr><th>Task</th><th>Category</th><th>Confidence</th></tr>
+        </thead>
+        <tbody>
+          ${tasks.map(t => `
+            <tr>
+              <td>${t.task}</td>
+              <td><strong>${t.category}</strong></td>
+              <td>${(t.confidence * 100).toFixed(1)}%</td>
+            </tr>
+          `).join('')}
+        </tbody>
+      `;
+      container.innerHTML = '';
+      container.appendChild(table);
+    }
+
+    function exportReports() {
+      const tasks = JSON.parse(localStorage.getItem('tasksList') || "[]");
+      if (!tasks.length) return alert("Nothing to export.");
+
+      const lines = tasks.map(t => `${t.task} --> ${t.category}`);
+      const blob = new Blob([lines.join('\n')], { type: 'text/plain' });
+      const link = document.createElement('a');
+      link.href = URL.createObjectURL(blob);
+      link.download = 'classified_tasks.txt';
+      link.click();
+    }
+  </script>
+</body>
+</html>
