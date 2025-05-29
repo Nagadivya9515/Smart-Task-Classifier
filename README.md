@@ -71,6 +71,32 @@ Here are a few scenarios where Smart Task Classifier shines:
 - Hugging Face Inference API (`facebook/bart-large-mnli`)
 
 ---
+## 🔒 Note on API Key
+
+> ⚠️ **Security Warning**  
+> For safety, never expose your Hugging Face API token in frontend code.  
+> This project currently uses a client-side fetch for demonstration purposes only.
+
+---
+
+## 📦 Getting Started
+
+### 1. Clone the repo
+
+```
+git clone https://github.com/your-username/smart-task-classifier.git
+cd smart-task-classifier
+```
+
+### 2. Add your HuggingFace API Token
+Open the HTML file and replace the HUGGINGFACE_API_TOKEN variable with your own:
+```
+const HUGGINGFACE_API_TOKEN = 'hf_xxx...';
+```
+<img width="735" alt="Screenshot 2025-05-29 at 6 19 03 PM" src="https://github.com/user-attachments/assets/84536fde-bc9e-4648-985c-27432f92b197" />
+<img width="1385" alt="Screenshot 2025-05-29 at 6 34 04 PM" src="https://github.com/user-attachments/assets/e6a54abc-7092-4d49-922f-f0a3abcd7cec" />
+
+---
 ## 📄 License
 
 MIT License
