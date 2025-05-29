@@ -60,7 +60,7 @@ Here are a few scenarios where Smart Task Classifier shines:
 
 ## 🧪 Demo
 
-[Live Demo](#) — *(optional: add GitHub Pages link if hosted)*
+[Live Demo](#) — (https://nagadivya9515.github.io/Smart-Task-Classifier/)
 
 ---
 
