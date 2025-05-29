@@ -1,8 +1,8 @@
 # 🧠 Smart Task Classifier
 
-A simple web app that uses Hugging Face's zero-shot classification model to automatically categorize your tasks based on user-defined labels.
+A simple web app that uses Hugging Face's zero-shot classification model automatically categorizes your tasks based on user-defined labels.
 
-> Built with vanilla HTML, CSS, and JavaScript – no backend required!
+> Built with HTML, CSS, and JavaScript – no backend required!
 
 ---
 
